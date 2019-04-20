@@ -1,3 +1,19 @@
+### This is a fork of facundomedica/fast_qr_reader_view which uses ZXing instead of Firebase ML Kit to decode.
+
+All of the API and installations steps are the same as `facundomedica/fast_qr_reader_view`, except for the "Add Firebase" section.
+
+If you are already using `facundomedica/fast_qr_reader_view`, you can simply replace pubspec.yaml:
+
+```yaml
+dependencies:
+  qr_reader_view:
+    git: https://github.com/lkho/fast_qr_reader_view.git
+```
+
+and remove Firebase and Google Services related configuration.
+
+----------
+
 # Fast QR Reader View Plugin
 
 **[See in pub](https://pub.dartlang.org/packages/fast_qr_reader_view)**

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-final MethodChannel _channel = const MethodChannel('fast_qr_reader_view')
+final MethodChannel _channel = const MethodChannel('qr_reader_view')
   ..invokeMethod('init');
 
 enum CameraLensDirection { front, back, external }
@@ -24,6 +24,13 @@ enum CodeFormat {
   datamatrix,
   pdf417,
   qr
+}
+
+enum Rotation {
+  ROTATE_0,
+  ROTATE_90,
+  ROTATE_180,
+  ROTATE_270,
 }
 
 var _availableFormats = {
@@ -86,7 +93,7 @@ CameraLensDirection _parseCameraLensDirection(String string) {
 Future<List<CameraDescription>> availableCameras() async {
   try {
     final List<dynamic> cameras =
-        await _channel.invokeMethod('availableCameras');
+    await _channel.invokeMethod('availableCameras');
     return cameras.map((dynamic camera) {
       return new CameraDescription(
         name: camera['name'],
@@ -162,23 +169,26 @@ class QRReaderValue {
   /// Is `null` until  [isInitialized] is `true`.
   final Size previewSize;
 
+  final Rotation previewRotation;
+
   const QRReaderValue({
     this.isInitialized,
     this.errorDescription,
     this.previewSize,
     this.isScanning,
+    this.previewRotation,
   });
 
   const QRReaderValue.uninitialized()
       : this(
-          isInitialized: false,
-          isScanning: false,
-        );
+    isInitialized: false,
+    isScanning: false,
+  );
 
-  /// Convenience getter for `previewSize.height / previewSize.width`.
+  /// Convenience getter for `previewSize.aspectRatio`.
   ///
   /// Can only be called when [initialize] is done.
-  double get aspectRatio => previewSize.height / previewSize.width;
+  double get aspectRatio => previewSize.aspectRatio;
 
   bool get hasError => errorDescription != null;
 
@@ -187,11 +197,13 @@ class QRReaderValue {
     bool isScanning,
     String errorDescription,
     Size previewSize,
+    Rotation previewRotation,
   }) {
     return new QRReaderValue(
       isInitialized: isInitialized ?? this.isInitialized,
       errorDescription: errorDescription,
       previewSize: previewSize ?? this.previewSize,
+      previewRotation: previewRotation ?? this.previewRotation,
       isScanning: isScanning ?? this.isScanning,
     );
   }
@@ -202,7 +214,8 @@ class QRReaderValue {
         'isScanning: $isScanning, '
         'isInitialized: $isInitialized, '
         'errorDescription: $errorDescription, '
-        'previewSize: $previewSize)';
+        'previewSize: $previewSize, '
+        'previewRotation: $previewRotation)';
   }
 }
 
@@ -247,18 +260,26 @@ class QRReaderController extends ValueNotifier<QRReaderValue> {
         },
       );
       _textureId = reply['textureId'];
+      var previewSize = new Size(
+        reply['previewWidth'].toDouble(),
+        reply['previewHeight'].toDouble(),
+      );
+      var previewRotation = reply['previewRotation'] != null
+          ? Rotation.values[reply['previewRotation']]
+          : null;
+      if (previewRotation == Rotation.ROTATE_90 || previewRotation == Rotation.ROTATE_270){
+        previewSize = previewSize.flipped;
+      }
       value = value.copyWith(
         isInitialized: true,
-        previewSize: new Size(
-          reply['previewWidth'].toDouble(),
-          reply['previewHeight'].toDouble(),
-        ),
+        previewSize: previewSize,
+        previewRotation: previewRotation,
       );
     } on PlatformException catch (e) {
       throw new QRReaderException(e.code, e.message);
     }
     _eventSubscription =
-        new EventChannel('fast_qr_reader_view/cameraEvents$_textureId')
+        new EventChannel('qr_reader_view/cameraEvents$_textureId')
             .receiveBroadcastStream()
             .listen(_listener);
     _creatingCompleter.complete(null);

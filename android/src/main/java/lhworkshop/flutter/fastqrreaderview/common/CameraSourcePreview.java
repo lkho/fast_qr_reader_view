@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package co.apperto.fastqrreaderview.common;
+package lhworkshop.flutter.fastqrreaderview.common;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -19,10 +19,8 @@ import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.SurfaceHolder;
+import android.util.Size;
 import android.view.ViewGroup;
-
-import com.google.android.gms.common.images.Size;
 
 import java.io.IOException;
 
@@ -54,9 +52,6 @@ public class CameraSourcePreview extends ViewGroup {
         } catch (IOException e) {
             Log.e(TAG, "Could not start camera source.", e);
         }
-//    surfaceView.getHolder().addCallback(new SurfaceCallback());
-//      surfaceView.setonfr
-//    addView(surfaceView);
     }
 
     public void start(CameraSource cameraSource) throws IOException {
@@ -94,7 +89,6 @@ public class CameraSourcePreview extends ViewGroup {
     private void startIfReady() throws IOException {
         if (startRequested && surfaceAvailable) {
             cameraSource.start(surfaceView);
-//            cameraSource.start();
             if (overlay != null) {
                 Size size = cameraSource.getPreviewSize();
                 int min = Math.min(size.getWidth(), size.getHeight());
@@ -109,27 +103,6 @@ public class CameraSourcePreview extends ViewGroup {
                 overlay.clear();
             }
             startRequested = false;
-        }
-    }
-
-    private class SurfaceCallback implements SurfaceHolder.Callback {
-        @Override
-        public void surfaceCreated(SurfaceHolder surface) {
-            surfaceAvailable = true;
-            try {
-                startIfReady();
-            } catch (IOException e) {
-                Log.e(TAG, "Could not start camera source.", e);
-            }
-        }
-
-        @Override
-        public void surfaceDestroyed(SurfaceHolder surface) {
-            surfaceAvailable = false;
-        }
-
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         }
     }
 
