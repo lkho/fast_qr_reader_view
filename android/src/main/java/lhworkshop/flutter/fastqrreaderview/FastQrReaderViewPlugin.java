@@ -153,8 +153,7 @@ public class FastQrReaderViewPlugin implements MethodCallHandler {
      * Plugin registration.
      */
     public static void registerWith(Registrar registrar) {
-        channel =
-                new MethodChannel(registrar.messenger(), "qr_reader_view");
+        channel = new MethodChannel(registrar.messenger(), "qr_reader_view");
 
         cameraManager = (CameraManager) registrar.activity().getSystemService(Context.CAMERA_SERVICE);
 
@@ -505,8 +504,14 @@ public class FastQrReaderViewPlugin implements MethodCallHandler {
                     @Override
                     public void onCodeScanned(com.google.zxing.Result barcode) {
                         if (camera.scanning) {
-                            Log.w(TAG, "onSuccess: " + barcode.getText());
-                            channel.invokeMethod("updateCode", barcode.getText());
+                            final String value = barcode.getText();
+                            Log.w(TAG, "onSuccess: " + value);
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    channel.invokeMethod("updateCode", value);
+                                }
+                            });
                             stopScanning();
                         }
                     }
@@ -526,13 +531,18 @@ public class FastQrReaderViewPlugin implements MethodCallHandler {
             }
         }
 
-        private void sendErrorEvent(String errorDescription) {
-            if (eventSink != null) {
-                Map<String, String> event = new HashMap<>();
-                event.put("eventType", "error");
-                event.put("errorDescription", errorDescription);
-                eventSink.success(event);
-            }
+        private void sendErrorEvent(final String errorDescription) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (eventSink != null) {
+                        Map<String, String> event = new HashMap<>();
+                        event.put("eventType", "error");
+                        event.put("errorDescription", errorDescription);
+                        eventSink.success(event);
+                    }
+                }
+            });
         }
 
         private void close() {
