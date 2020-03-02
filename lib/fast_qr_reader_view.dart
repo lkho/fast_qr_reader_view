@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-final MethodChannel _channel = const MethodChannel('qr_reader_view')
+final MethodChannel _channel = const MethodChannel('fast_qr_reader_view')
   ..invokeMethod('init');
 
 enum CameraLensDirection { front, back, external }
@@ -93,7 +93,7 @@ CameraLensDirection _parseCameraLensDirection(String string) {
 Future<List<CameraDescription>> availableCameras() async {
   try {
     final List<dynamic> cameras =
-    await _channel.invokeMethod('availableCameras');
+        await _channel.invokeMethod('availableCameras');
     return cameras.map((dynamic camera) {
       return new CameraDescription(
         name: camera['name'],
@@ -181,9 +181,9 @@ class QRReaderValue {
 
   const QRReaderValue.uninitialized()
       : this(
-    isInitialized: false,
-    isScanning: false,
-  );
+          isInitialized: false,
+          isScanning: false,
+        );
 
   /// Convenience getter for `previewSize.aspectRatio`.
   ///
@@ -267,7 +267,8 @@ class QRReaderController extends ValueNotifier<QRReaderValue> {
       var previewRotation = reply['previewRotation'] != null
           ? Rotation.values[reply['previewRotation']]
           : null;
-      if (previewRotation == Rotation.ROTATE_90 || previewRotation == Rotation.ROTATE_270){
+      if (previewRotation == Rotation.ROTATE_90 ||
+          previewRotation == Rotation.ROTATE_270) {
         previewSize = previewSize.flipped;
       }
       value = value.copyWith(
@@ -279,7 +280,7 @@ class QRReaderController extends ValueNotifier<QRReaderValue> {
       throw new QRReaderException(e.code, e.message);
     }
     _eventSubscription =
-        new EventChannel('qr_reader_view/cameraEvents$_textureId')
+        new EventChannel('fast_qr_reader_view/cameraEvents$_textureId')
             .receiveBroadcastStream()
             .listen(_listener);
     _creatingCompleter.complete(null);

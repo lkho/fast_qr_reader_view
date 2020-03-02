@@ -6,7 +6,7 @@ If you are already using `facundomedica/fast_qr_reader_view`, you can simply rep
 
 ```yaml
 dependencies:
-  qr_reader_view:
+  fast_qr_reader_view:
     git: https://github.com/lkho/fast_qr_reader_view.git
 ```
 

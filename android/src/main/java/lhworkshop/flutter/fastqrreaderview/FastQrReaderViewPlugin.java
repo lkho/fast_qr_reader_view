@@ -20,6 +20,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
 
+import androidx.annotation.NonNull;
+
 import com.google.zxing.BarcodeFormat;
 
 import java.io.IOException;
@@ -31,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import androidx.annotation.NonNull;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -153,12 +154,17 @@ public class FastQrReaderViewPlugin implements MethodCallHandler {
      * Plugin registration.
      */
     public static void registerWith(Registrar registrar) {
-        channel = new MethodChannel(registrar.messenger(), "qr_reader_view");
+        channel = new MethodChannel(registrar.messenger(), "fast_qr_reader_view");
 
-        cameraManager = (CameraManager) registrar.activity().getSystemService(Context.CAMERA_SERVICE);
+        cameraManager = (CameraManager) registrar.context().getSystemService(Context.CAMERA_SERVICE);
 
-        channel.setMethodCallHandler(
-                new FastQrReaderViewPlugin(registrar, registrar.view(), registrar.activity()));
+        FastQrReaderViewPlugin plugin;
+        if (registrar.activity() != null) {
+            plugin = new FastQrReaderViewPlugin(registrar, registrar.view(), registrar.activity());
+        } else {
+            plugin = new FastQrReaderViewPlugin(registrar, null, null);
+        }
+        channel.setMethodCallHandler(plugin);
     }
 
 
@@ -431,7 +437,7 @@ public class FastQrReaderViewPlugin implements MethodCallHandler {
 
         private void registerEventChannel() {
             new EventChannel(
-                    registrar.messenger(), "qr_reader_view/cameraEvents" + textureEntry.id())
+                    registrar.messenger(), "fast_qr_reader_view/cameraEvents" + textureEntry.id())
                     .setStreamHandler(
                             new EventChannel.StreamHandler() {
                                 @Override
